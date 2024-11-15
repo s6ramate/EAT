@@ -1,0 +1,95 @@
+DATA:
+  data_name: semantic_kitti
+  data_root: /home/user/materla/thesis/dataset ## Fill in the data path 
+  label_mapping: util/semantic-kitti.yaml
+  classes: 19 
+  fea_dim: 6
+  voxel_size: [0.05, 0.05, 0.05]
+  voxel_max: 120000 
+  target: voxel
+
+TRAIN:
+  # arch
+  arch: unet_spherical_transformer_SSC_sparse_hybrid_unet_expanding_attn_convlike_EATv2_NO_conv
+  input_c: 4
+  m: 32
+  block_reps: 2
+  block_residual: True
+  layers: [32, 64, 128, 256, 256]
+  SSC:
+    positional_queries: False
+    positional_factors: True
+    hull_feats: True
+    ternary_dot: False
+    spatial_embs: True
+    num_heads: 8
+    use_out_proj: True
+    outer_drop: 0.1
+    inner_drop: 0.0
+    augmentations:
+      flip: True
+      rotate: False
+      crop_translate: True
+      dropout: True
+  quant_size_scale: 24
+  patch_size: 1 
+  window_size: 6
+  use_xyz: True
+  sync_bn: True  # adopt sync_bn or not
+  rel_query: True
+  rel_key: True
+  rel_value: True
+  drop_path_rate: 0.3
+  max_batch_points: 1000000
+  class_weight: [0.0446, 0.0603, 0.0852, 0.0856, 0.0747, 0.0734, 0.0801, 0.0796, 0.0818,
+        0.0557, 0.0653, 0.0568, 0.0683, 0.0560, 0.0603, 0.0530, 0.0688, 0.0574,
+        0.0716, 0.0786]
+  xyz_norm: false
+  pc_range: [[0, -25.6, -2.0], [51.2, 25.6, 4.4]]
+  window_size_sphere: [2, 2, 80]
+  window_size_scale: [2.0, 1.5]
+  sphere_layers: [1,2,3,4,5]
+  grad_checkpoint_layers: []
+  a: 0.0125
+  loss_name: ce_loss
+  use_tta: False
+  vote_num: 4
+
+  # training
+  aug: False
+  transformer_lr_scale: 0.1 
+  scheduler_update: step 
+  scheduler: Poly
+
+  power: 0.9
+  use_amp: True #False #True
+  train_gpu: [0,1,2,3,4,5] 
+  workers: 1 # data loader workers 
+  batch_size: 6 # batch size for training
+  batch_size_val: 6 # batch size for validation during training, memory and speed tradeoff
+  base_lr: 0.006 
+  epochs: 50
+  start_epoch: 0
+  momentum: 0.9
+  weight_decay: 0.02 
+  drop_rate: 0.5
+
+  ignore_label: 255
+  manual_seed: 123
+  print_freq: 10
+  save_freq: 1
+  save_path: runs/semantic_kitti_unet32_spherical_transformer_SSC_sparse_hybrid_unet_expanding_attn_convlike_EATv2_inner_expansion_NO_conv_rerun_nodropout_original_data_spatial_embs_rerunbs6_rerun
+  weight: /home/user/materla/thesis/EAT/model_semantic_kitti.pth # path to initial weight (default: none)
+  resume: /home/user/materla/thesis/EAT/runs/semantic_kitti_unet32_spherical_transformer_SSC_sparse_hybrid_unet_expanding_attn_convlike_EATv2_inner_expansion_NO_conv_rerun_nodropout_original_data_spatial_embs_rerunbs6_rerun/model/model_best.pth
+  evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+  eval_freq: 1
+  val: true
+  test: false
+  
+Distributed:
+  dist_url: tcp://127.0.0.1:6789
+  dist_backend: 'nccl'
+  multiprocessing_distributed: True
+  world_size: 1
+  rank: 0
+
